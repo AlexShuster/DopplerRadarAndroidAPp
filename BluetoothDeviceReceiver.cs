@@ -1,12 +1,22 @@
 ﻿using Android.Bluetooth;
 using Android.Content;
-using DopplerRadarAndroidAPp;
+using DopplerRadarAndroidApp;
+using DopplerRadarAndroidApp.ListView;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace DopplerRadarAndroidAPp
+namespace DopplerRadarAndroidApp
 {
     public class BluetoothDeviceReceiver : BroadcastReceiver
     {
         public static BluetoothAdapter Adapter => BluetoothAdapter.DefaultAdapter;
+
+        public List<BluetoothDevice> deviceList = new List<BluetoothDevice>();
+        
+        public BluetoothDeviceReceiver()
+        {
+            deviceList = Adapter.BondedDevices.ToList();
+        }
 
         public override void OnReceive(Context context, Intent intent)
         {
@@ -23,6 +33,7 @@ namespace DopplerRadarAndroidAPp
                     if (device.BondState != Bond.Bonded)
                     {
                         MainActivity.GetInstance().UpdateAdapter(new DataItem(device.Name, device.Address));
+                        deviceList.Add(device);
                     }
 
                     break;

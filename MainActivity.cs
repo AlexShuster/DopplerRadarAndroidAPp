@@ -29,297 +29,221 @@ using SciChart.Charting3D.Modifiers;
 using SciChart.Charting;
 using Android.Bluetooth;
 using Android.Content;
-using static DopplerRadarAndroidAPp.BluetoothDeviceReceiver;
 using System.Collections.Generic;
+using Android.Support.V4.Content;
+using Android.Content.PM;
+using DopplerRadarAndroidApp.ListView;
+using static Android.Bluetooth.BluetoothClass;
+using Android.Media;
+using System.Text;
 
-namespace DopplerRadarAndroidAPp
+namespace DopplerRadarAndroidApp
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
-    public class MainActivity : AppCompatActivity
+    public class MainActivity : Activity
     {
-        [Obsolete]
-        protected override void OnCreate(Bundle savedInstanceState)
+        private const int LocationPermissionsRequestCode = 1000;
+
+        private static readonly string[] LocationPermissions =
         {
+            Manifest.Permission.AccessCoarseLocation,
+            Manifest.Permission.AccessFineLocation,
+            Manifest.Permission.Bluetooth,
+            Manifest.Permission.BluetoothAdmin,
+            Manifest.Permission.BluetoothAdvertise,
+            Manifest.Permission.BluetoothConnect,
+            Manifest.Permission.BluetoothPrivileged,
+            Manifest.Permission.BluetoothScan
 
-            base.OnCreate(savedInstanceState);
+        };
 
-            // SciChart License Key
-            SciChartSurface.SetRuntimeLicenseKey("SrDiaOt4OKLdVapiKRimqKbg/4T5ljr/pv4erw0WJa6YWIk0DIfv/kY/Yrhn87mcrHTWcSZz/8K/OMQwErwJiTwBtrKs2634dkIISi3Ti46yAg4KUPYrHDliaRvBWA0VzD8ScQSHrWa/GuDnkyzL1MQOuPb6dV6HJh3Q9zQtNtm7QIOyHQkUlevKXjEXiUo/G9yyNTE1c4FcdsaIP0DFMthVBzUnAuTIaogY6HvKLvPKDreLyw0wNE3CjDo/Hb8cF7DM/inkyrt/7NNjNe2qfLQsqUQlxLeNUWDWUZqSnNbil07g8qHprNjpCcDGlSQ8c0ySpfe+1LYSD2icWqC3158eUTKmAkAlXMp5EwCFGIwb0Q3ddu/HOaiHJAEe9Njxj/aNIvJKepk16XwZFci36pbFPUrR0kbNkBWLPC835G/X12ysfGWFjODS5rw31FUNeaO1frsKcLui2nVMJ+g4yp4qygGCQY09gKznDIA77aISdhFxddCZxm/SCweQ+8bmxmkvnsIxKvPobnJ7bNnPA81ZW8TTBc/XG/Fz2I5PNWTnEdELtt9n6IN0gt14J+LMtw3fdJfRp6r5o6etYBrE9ZEV6cT7");
-
-
-            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
-            SetContentView(Resource.Layout.activity_main);
-
-            #region SciChart
-
-            // Get our chart from the layout resource,
-            var chart = FindViewById<SciChartSurface>(Resource.Id.Chart);
-
-            // Create a numeric X axis
-            var xAxis = new NumericAxis(this) { AxisTitle = "Pitch Number" };
-
-            // Create a numeric Y axis
-            var yAxis = new NumericAxis(this)
-            {
-                AxisTitle = "Pitch Velocity (mph)",
-                VisibleRange = new DoubleRange(1, 150)
-            };
-
-            // Add xAxis to the XAxes collection of the chart
-            chart.XAxes.Add(xAxis);
-
-            // Add yAxis to the YAxes collection of the chart
-            chart.YAxes.Add(yAxis);
-
-            // Create interactivity modifiers
-            var xAxisDragModifier = new XAxisDragModifier();
-            xAxisDragModifier.SetReceiveHandledEvents(true);
-
-            var zoomPanModifier = new ZoomPanModifier();
-            zoomPanModifier.Direction = Direction2D.XDirection;
-            zoomPanModifier.SetReceiveHandledEvents(true);
-
-            var zoomExtentsModifier = new ZoomExtentsModifier();
-            zoomExtentsModifier.SetReceiveHandledEvents(true);
-
-            // Create RolloverModifier to show tooltips
-            var rolloverModifier = new RolloverModifier();
-            rolloverModifier.SetReceiveHandledEvents(true);
-
-            // Create modifier group from declared modifiers
-            var modifiers = new ModifierGroup(xAxisDragModifier, zoomPanModifier, zoomExtentsModifier, rolloverModifier);
-
-            // Add the interactions to the ChartModifiers collection of the chart
-            chart.ChartModifiers.Add(modifiers);
-
-            // Data
-            // Create XyDataSeries to host data for our chart
-            var lineData = new XyDataSeries<double, double>() { SeriesName = "Sin(x)" };
-            var scatterData = new XyDataSeries<double, double>() { SeriesName = "Cos(x)" };
-
-            // Append data which should be drawn
-            for (var i = 0; i < 100; i++)
-            {
-                lineData.Append(i, 60 + 50 * Math.Sin(i * 0.1));
-                scatterData.Append(i, 60 + 50 * Math.Cos(i * 0.1));
-            }
-
-            // Create line series with data appended into lineData
-            var lineSeries = new FastLineRenderableSeries()
-            {
-                DataSeries = lineData,
-                StrokeStyle = new SolidPenStyle(Color.LightBlue, 2)
-            };
-
-            // Create scatter series with data appended into scatterData
-            var pitchSpeedSeries = new FastLineRenderableSeries()
-            {
-                DataSeries = scatterData,
-                StrokeStyle = new SolidPenStyle(Color.LightGreen, 2)
-            };
-
-            // Add the renderable series to the RenderableSeries collection of the chart
-            chart.RenderableSeries.Add(lineSeries);
-            chart.RenderableSeries.Add(pitchSpeedSeries);
-
-
-            //// Spin Rate Chart
-            //// Get our chart from the layout resource,
-            //var spinRateChart = FindViewById<SciChartSurface>(Resource.Id.SpinRateChart);
-
-            //// Create a numeric X axis
-            //var spinRateXAxis = new NumericAxis(this) { AxisTitle = "Pitch Number" };
-
-            //// Create a numeric Y axis
-            //var spinRateYAxis = new NumericAxis(this)
-            //{
-            //    AxisTitle = "Pitch Spin Rate (RPM)",
-            //    VisibleRange = new DoubleRange(1, 150)
-            //};
-
-            //// Add xAxis to the XAxes collection of the chart
-            //spinRateChart.XAxes.Add(xAxis);
-
-            //// Add yAxis to the YAxes collection of the chart
-            //spinRateChart.YAxes.Add(yAxis);
-
-            //// Create interactivity modifiers
-            //var spinRateXAxisDragModifier = new XAxisDragModifier();
-            //spinRateXAxisDragModifier.SetReceiveHandledEvents(true);
-
-            //var spinRateZoomPanModifier = new ZoomPanModifier();
-            //spinRateZoomPanModifier.Direction = Direction2D.XDirection;
-            //spinRateZoomPanModifier.SetReceiveHandledEvents(true);
-
-            //var spinRateZoomExtentsModifier = new ZoomExtentsModifier();
-            //spinRateZoomExtentsModifier.SetReceiveHandledEvents(true);
-
-            //// Create RolloverModifier to show tooltips
-            //var spinRateRolloverModifier = new RolloverModifier();
-            //spinRateRolloverModifier.SetReceiveHandledEvents(true);
-
-            //// Create modifier group from declared modifiers
-            //var spinRateModifiers = new ModifierGroup(spinRateXAxisDragModifier, spinRateZoomPanModifier, spinRateZoomExtentsModifier, spinRateRolloverModifier);
-
-            //// Add the interactions to the ChartModifiers collection of the chart
-            //spinRateChart.ChartModifiers.Add(spinRateModifiers);
-
-            //// Data
-            //// Create XyDataSeries to host data for our chart
-            //var spinRateLineData = new XyDataSeries<double, double>() { SeriesName = "Sin(x)" };
-            //var spinRateScatterData = new XyDataSeries<double, double>() { SeriesName = "Cos(x)" };
-
-            //// Append data which should be drawn
-            //for (var i = 0; i < 100; i++)
-            //{
-            //    spinRateLineData.Append(i, 60 + 50 * Math.Sin(i * 0.1));
-            //    spinRateScatterData.Append(i, 60 + 50 * Math.Cos(i * 0.1));
-            //}
-
-            //// Create line series with data appended into lineData
-            //var spinRateLineSeries = new FastLineRenderableSeries()
-            //{
-            //    DataSeries = spinRateLineData,
-            //    StrokeStyle = new SolidPenStyle(Color.LightBlue, 2)
-            //};
-
-            //// Create scatter series with data appended into scatterData
-            //var spinRateSeries = new FastLineRenderableSeries()
-            //{
-            //    DataSeries = scatterData,
-            //    StrokeStyle = new SolidPenStyle(Color.LightGreen, 2)
-            //};
-
-            //// Add the renderable series to the RenderableSeries collection of the chart
-            //spinRateChart.RenderableSeries.Add(spinRateLineSeries);
-            //spinRateChart.RenderableSeries.Add(spinRateSeries);
-
-            #endregion SciChart
-
-            AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-            SetSupportActionBar(toolbar);
-
-            // Scan Button
-            Button scanButton = FindViewById<Button>(Resource.Id.ScanButton);
-            scanButton.Click += ScanButton_Click;
-
-            #region OnCreate() Bluetooth
-
-            // Request BluetoothPermission
-            ActivityCompat.RequestPermissions(this, new String[] { Manifest.Permission.BluetoothScan, 
-                                                                   Manifest.Permission.BluetoothAdvertise, 
-                                                                   Manifest.Permission.BluetoothConnect }, 1);
-
-
-            // Register for broadcasts when a device is discovered
-            _receiver = new BluetoothDeviceReceiver();
-            RegisterBluetoothReceiver();
-
-
-
-
-            #endregion OnCreate() Bluetooth
-        }
-
-        #region UI
-        public override bool OnCreateOptionsMenu(IMenu menu)
-        {
-            MenuInflater.Inflate(Resource.Menu.menu_main, menu);
-            return true;
-        }
-
-        public override bool OnOptionsItemSelected(IMenuItem item)
-        {
-            int id = item.ItemId;
-            if (id == Resource.Id.action_settings)
-            {
-                return true;
-            }
-
-            return base.OnOptionsItemSelected(item);
-        }
-
-        private void FabOnClick(object sender, EventArgs eventArgs)
-        {
-            View view = (View) sender;
-            Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
-                .SetAction("Action", (View.IOnClickListener)null).Show();
-        }
-        #endregion UI
-
-        #region Bluetooth
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
-        {
-            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-
+        // Bluetooth Variables
         private static MainActivity _instance;
         private bool _isReceiveredRegistered;
         private BluetoothDeviceReceiver _receiver;
+        private BluetoothSocket _socket;
+        private BluetoothServerSocket _serverSocket;
+
+        public static MainActivity GetInstance()
+        {
+            return _instance;
+        }
+
+        protected override void OnCreate(Bundle savedInstanceState)
+        {
+            SciChartSurface.SetRuntimeLicenseKey("SrDiaOt4OKLdVapiKRimqKbg/4T5ljr/pv4erw0WJa6YWIk0DIfv/kY/Yrhn87mcrHTWcSZz/8K/OMQwErwJiTwBtrKs2634dkIISi3Ti46yAg4KUPYrHDliaRvBWA0VzD8ScQSHrWa/GuDnkyzL1MQOuPb6dV6HJh3Q9zQtNtm7QIOyHQkUlevKXjEXiUo/G9yyNTE1c4FcdsaIP0DFMthVBzUnAuTIaogY6HvKLvPKDreLyw0wNE3CjDo/Hb8cF7DM/inkyrt/7NNjNe2qfLQsqUQlxLeNUWDWUZqSnNbil07g8qHprNjpCcDGlSQ8c0ySpfe+1LYSD2icWqC3158eUTKmAkAlXMp5EwCFGIwb0Q3ddu/HOaiHJAEe9Njxj/aNIvJKepk16XwZFci36pbFPUrR0kbNkBWLPC835G/X12ysfGWFjODS5rw31FUNeaO1frsKcLui2nVMJ+g4yp4qygGCQY09gKznDIA77aISdhFxddCZxm/SCweQ+8bmxmkvnsIxKvPobnJ7bNnPA81ZW8TTBc/XG/Fz2I5PNWTnEdELtt9n6IN0gt14J+LMtw3fdJfRp6r5o6etYBrE9ZEV6cT7");
+
+            base.OnCreate(savedInstanceState);
+
+            _instance = this;
+
+            SetContentView(Resource.Layout.activity_main);
+
+            var coarseLocationPermissionGranted =
+                ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessCoarseLocation);
+            var fineLocationPermissionGranted =
+                ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation);
+
+            if (coarseLocationPermissionGranted != Permission.Denied ||
+                fineLocationPermissionGranted == Permission.Denied)
+                ActivityCompat.RequestPermissions(this, LocationPermissions, LocationPermissionsRequestCode);
+
+            // Register for broadcasts when a device is discovered
+            _receiver = new BluetoothDeviceReceiver();
+
+            RegisterBluetoothReceiver();
+
+            PopulateListView();
+
+            Button scanButton = FindViewById<Button>(Resource.Id.ScanButton);
+            scanButton.Click += ScanButton_Click;
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            // Make sure we're not doing discovery anymore
+            CancelScanning();
+
+            // Unregister broadcast listeners
+            UnregisterBluetoothReceiver();
+        }
+
+        protected override void OnPause()
+        {
+            base.OnPause();
+
+            // Make sure we're not doing discovery anymore
+            CancelScanning();
+
+            // Unregister broadcast listeners
+            UnregisterBluetoothReceiver();
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+
+            StartScanning();
+
+            // Register broadcast listeners
+            RegisterBluetoothReceiver();
+        }
+
+        public void UpdateAdapter(DataItem dataItem)
+        {
+            var lst = FindViewById<Android.Widget.ListView>(Resource.Id.lstview);
+            var adapter = lst.Adapter as ListViewAdapter;
+
+            var items = adapter?.Items.Where(m => m.GetListItemType() == ListItemType.DataItem).ToList();
+
+            if (items != null && !items.Any(x =>
+                    ((DataItem)x).Text == dataItem.Text && ((DataItem)x).SubTitle == dataItem.SubTitle))
+            {
+                adapter.Items.Add(dataItem);
+            }
+
+            lst.Adapter = new ListViewAdapter(this, adapter?.Items);
+        }
 
         private static void StartScanning()
         {
             if (!BluetoothDeviceReceiver.Adapter.IsDiscovering) BluetoothDeviceReceiver.Adapter.StartDiscovery();
         }
 
-        public static List<string> mDeviceList = new List<string>();
-
-        #endregion Bluetooth
-        // Scan Button
-        public void ScanButton_Click(object sender, System.EventArgs e)
+        private static void CancelScanning()
         {
-            //var advertiseCheck = CheckSelfPermission(Manifest.Permission.BluetoothAdvertise);
-            //var scanCheck = CheckSelfPermission(Manifest.Permission.BluetoothScan);
-            //var connectCheck = CheckSelfPermission(Manifest.Permission.BluetoothConnect);
-
-            //// Determine if BluetoothAdapter is Enabled
-            //BluetoothAdapter adapter = BluetoothAdapter.DefaultAdapter;
-            //if (adapter == null)
-            //    throw new Exception("No Bluetooth adapter found.");
-
-            //if (!adapter.IsEnabled)
-            //    throw new Exception("Bluetooth adapter is not enabled.");
-
-            //// Get Bluetooth Device
-            //BluetoothDevice device = (from bd in adapter.BondedDevices
-            //                          where bd.Name == "Arduino Nano 33 BLE"
-            //                          select bd).FirstOrDefault();
-
-            //if (device == null)
-            //    throw new Exception("Named device not found.");
-
-            //// Create Bluetooth Socket Connection
-            //var _socket = device.CreateRfcommSocketToServiceRecord(UUID.FromString("00001101-0000-1000-8000-00805f9b34fb"));
-            //// await _socket.ConnectAsync();
-
-            //// Read/Write
-            //// Read data from the device
-            ////await _socket.InputStream.ReadAsync(buffer, 0, buffer.Length);
-
-            //// Write data to the device
-            ////await _socket.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-            ///
-
-            // Get Devices Already Paired with Phone
-            if (BluetoothAdapter.DefaultAdapter != null && BluetoothAdapter.DefaultAdapter.IsEnabled)
-            {
-                foreach (var pairedDevice in BluetoothAdapter.DefaultAdapter.BondedDevices)
-                {
-                    Console.WriteLine(
-                        $"Found device with name: {pairedDevice.Name} and MAC address: {pairedDevice.Address}");
-                }
-            }
-
-            // Start Device Discovery
-            StartScanning();
+            if (BluetoothDeviceReceiver.Adapter.IsDiscovering) BluetoothDeviceReceiver.Adapter.CancelDiscovery();
         }
 
-        
+        private void RegisterBluetoothReceiver()
+        {
+            if (_isReceiveredRegistered) return;
+
+            RegisterReceiver(_receiver, new IntentFilter(BluetoothDevice.ActionFound));
+            RegisterReceiver(_receiver, new IntentFilter(BluetoothAdapter.ActionDiscoveryStarted));
+            RegisterReceiver(_receiver, new IntentFilter(BluetoothAdapter.ActionDiscoveryFinished));
+            _isReceiveredRegistered = true;
+        }
+
+        private void UnregisterBluetoothReceiver()
+        {
+            if (!_isReceiveredRegistered) return;
+
+            UnregisterReceiver(_receiver);
+            _isReceiveredRegistered = false;
+        }
+
+        private void PopulateListView()
+        {
+            var item = new List<IListItem>
+            {
+                new HeaderListItem("PREVIOUSLY PAIRED")
+            };
+
+            item.AddRange(
+                BluetoothDeviceReceiver.Adapter.BondedDevices.Select(
+                    bluetoothDevice => new DataItem(
+                        bluetoothDevice.Name,
+                        bluetoothDevice.Address
+                    )
+                )
+            );
+
+            StartScanning();
+
+            item.Add(new StatusHeaderListItem("Scanning started..."));
+
+            var lst = FindViewById<Android.Widget.ListView>(Resource.Id.lstview);
+            lst.Adapter = new ListViewAdapter(this, item);
+        }
+
+        public void UpdateAdapterStatus(string discoveryStatus)
+        {
+            var lst = FindViewById<Android.Widget.ListView>(Resource.Id.lstview);
+            var adapter = lst.Adapter as ListViewAdapter;
+
+            var hasStatusItem = adapter?.Items?.Any(m => m.GetListItemType() == ListItemType.Status);
+
+            if (hasStatusItem.HasValue && hasStatusItem.Value)
+            {
+                var statusItem = adapter.Items.Single(m => m.GetListItemType() == ListItemType.Status);
+                statusItem.Text = discoveryStatus;
+            }
+
+            lst.Adapter = new ListViewAdapter(this, adapter?.Items);
+        }
 
 
 
+        public void ScanButton_Click(object sender, System.EventArgs e)
+        {
+            // Get Bonded Device (RadarGunBluetooth)
+            var connectedDevice = (from bd in _receiver.deviceList where bd.Name == "RadarGunBluetooth" select bd).FirstOrDefault();// Return bonded device
+            //connectedDevice.SetPairingConfirmation(false);
 
+            //connectedDevice.SetPairingConfirmation(true);
+            connectedDevice.CreateBond();
+
+            // Create and Connect Bluetooth Socket
+            _socket = connectedDevice.CreateRfcommSocketToServiceRecord(Java.Util.UUID.FromString("00001101-0000-1000-8000-00805f9b34fb")); //the UUID of HC-05
+            _socket.Connect();
+
+            //var connectedDevice = _receiver.deviceList.Find(x => x.Name == "AlexLab4");
+            ////_socket = connectedDevice.CreateL2capChannel(0x0080); c2478b88-3ede-4070-b011-3716be7c1aca
+            //_serverSocket = BluetoothDeviceReceiver.Adapter.ListenUsingRfcommWithServiceRecord("PitchData", UUID.FromString("0000FFE0-0000-1000-8000-00805F9B34FB"));
+            //_socket = _serverSocket.Accept();
+            //_serverSocket.Close();
+
+            //CancelScanning();
+            ////_socket.Connect();
+
+            //// Read data from the device
+            //// _socket.InputStream.ReadByte();
+
+            //// Write data to the device
+            _socket.OutputStream.Write(System.Text.Encoding.ASCII.GetBytes("Hello World!"));
+        }
     }
 }
