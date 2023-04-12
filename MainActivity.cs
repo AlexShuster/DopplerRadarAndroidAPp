@@ -47,6 +47,7 @@ namespace DopplerRadarAndroidApp
 
         private PitchIdentifier _pitchID;
         private const int BluetoothPermissionsRequestCode = 1000;
+        List<string> stringList = new List<string>();
 
         private static readonly string[] BluetoothPermissions =
         {
@@ -130,6 +131,9 @@ namespace DopplerRadarAndroidApp
 
         public void ScanButton_Click(object sender, System.EventArgs e)
         {
+            //stringList.Add("test1");
+            //stringList.Add("Test2");
+            //stringList.Add("test3");
             // Get Bonded Device (RadarGunBluetooth)
             var connectedDevice = (from bd in _handler.deviceList where bd.Name == "RadarGunBluetooth" select bd).FirstOrDefault();// Return bonded device
             //connectedDevice.SetPairingConfirmation(false);
@@ -163,11 +167,11 @@ namespace DopplerRadarAndroidApp
             {
                 // Read data from Bluetooth
                 _socket.InputStream.Read(bytes, 0, 13);
-                _socket.InputStream.Read(bytes2, 0, 13);
+                //_socket.InputStream.Read(bytes2, 0, 13);
 
                 // 1. Convert to string
                 bytesString = System.Text.Encoding.ASCII.GetString(bytes);
-                bytesString2 = System.Text.Encoding.ASCII.GetString(bytes2);
+                //bytesString2 = System.Text.Encoding.ASCII.GetString(bytes2);
 
                 // 2. Separate string into values using regex
                 Regex speedSplitter, speedSplitter2, spinRateSplitter, spinRateSplitter2;
@@ -187,8 +191,8 @@ namespace DopplerRadarAndroidApp
                     spinRate = spinRateMatch.Groups[1].ToString();
 
                     // Get second read variables
-                    speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
-                    spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
+                    //speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
+                    //spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
                 }
                 else if (bytesString.LastIndexOf(';') > 7 && bytesString.LastIndexOf(';') < 12) // a,bbbbbb;aaaa
                 {
@@ -205,8 +209,8 @@ namespace DopplerRadarAndroidApp
                     spinRate = spinRateMatch.Groups[1].ToString();
 
                     // Second Read Variables
-                    speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString() + speedSplitter2.Match(bytesString2).Groups[1].ToString();
-                    spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
+                    //speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString() + speedSplitter2.Match(bytesString2).Groups[1].ToString();
+                    //spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
                 }
                 else if (bytesString.LastIndexOf(';') == 7) // ,bbbbbb;aaaaa
                 {
@@ -221,8 +225,8 @@ namespace DopplerRadarAndroidApp
                     spinRate = spinRateMatch.Groups[1].ToString();
 
                     // Second Read Variables
-                    speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
-                    spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
+                    //speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
+                    //spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
                 }
                 else if (bytesString.LastIndexOf(';') == 6) // bbbbbb;aaaaa,
                 {
@@ -237,8 +241,8 @@ namespace DopplerRadarAndroidApp
                     spinRate = spinRateMatch.Groups[1].ToString();
 
                     // First Read Variables
-                    speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
-                    spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
+                    //speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
+                    //spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
 
                 }
                 else if (bytesString.LastIndexOf(';') > 2 && bytesString.LastIndexOf(';') < 6) // bbbbb;aaaaa,b
@@ -256,8 +260,8 @@ namespace DopplerRadarAndroidApp
                     spinRate = spinRateMatch.Groups[1].ToString() + spinRateMatch.Groups[1].ToString();
 
                     // Second Read Variables
-                    speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
-                    spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString() + spinRateSplitter2.Match(bytesString2).Groups[1].ToString();
+                    //speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
+                    //spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString() + spinRateSplitter2.Match(bytesString2).Groups[1].ToString();
 
                 }
                 else if (bytesString.LastIndexOf(';') == 0) // ;aaaaa,bbbbbb
@@ -273,8 +277,8 @@ namespace DopplerRadarAndroidApp
                     spinRate = spinRateMatch.Groups[1].ToString();
 
                     // Second Read Variables
-                    speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
-                    spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
+                    //speed2 = speedSplitter.Match(bytesString2).Groups[1].ToString();
+                    //spinRate2 = spinRateSplitter.Match(bytesString2).Groups[1].ToString();
                 }
 
                 // 3. Check if first few values of vel/spin are equal
@@ -282,20 +286,20 @@ namespace DopplerRadarAndroidApp
                 //string speedTest2 = speed2.Substring(0, 3);
                 //string spinTest1 = spinRate.Substring(0, 3);
                 //string spinTest2 = spinRate2.Substring(0, 3);
-                if (speed.Substring(0, 3) == speed2.Substring(0, 3) && spinRate.Substring(0, 3) == spinRate2.Substring(0, 3))
-                {
-                    if (speed.Substring(0, 3) != speedFinal.ToString().Substring(0, 3) && spinRate.Substring(0, 2) != spinRateFinal.ToString().Substring(0, 2))
-                    {
-                        speedFinal = float.Parse(speed);
-                        spinRateFinal = float.Parse(spinRate);
+                //if (speed.Substring(0, 3) == speed2.Substring(0, 3) && spinRate.Substring(0, 3) == spinRate2.Substring(0, 3))
+                //{
+                //    if (speed.Substring(0, 3) != speedFinal.ToString().Substring(0, 3) && spinRate.Substring(0, 2) != spinRateFinal.ToString().Substring(0, 2))
+                //    {
+                //        speedFinal = float.Parse(speed);
+                //        spinRateFinal = float.Parse(spinRate);
 
-                        isNewValue = false;
-                    }
-                    else
-                    {
-                        isNewValue = true;
-                    }
-                }
+                //        isNewValue = false;
+                //    }
+                //    else
+                //    {
+                //        isNewValue = true;
+                //    }
+                //}
             }    
         }
     }
